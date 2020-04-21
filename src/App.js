@@ -1,26 +1,230 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {Component} from 'react';
 import './App.css';
+import M from 'materialize-css';
 
-function App() {
+class App extends Component {
+
+  constructor(){
+    super();
+    this.state = {
+      _id:null,
+      productTitle:'',
+      ref:'',
+      price:'',
+      weight:'',
+      category:'',
+      stock: '',
+      products: []
+    }
+    this.addProduct = this.addProduct.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  addProduct = (e) => {
+    const id = this.state._id
+    if (id) {
+      let url = `http://localhost:4000/v1/api/product/${id}`;
+      fetch(url,{
+        method: 'PATCH',
+        body: JSON.stringify(this.state),
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      })
+      .then( res => res.json())
+      .then( data => {
+        console.log(data);
+        M.toast({html: 'Producto Actualizado'});
+        this.setState({
+          _id:null,
+          productTitle:'',
+          ref:'',
+          price:'',
+          weight:'',
+          category:'',
+          stock: ''
+        });
+        this.getProducts();
+      })
+    } else {
+    const url ='http://localhost:4000/v1/api/product/create';
+
+    fetch(url,{
+      method: 'POST',
+      body: JSON.stringify(this.state),
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log(data)
+      M.toast({html: 'Producto Guardado'});
+      this.setState({
+        productTitle:'',
+        ref:'',
+        price:'',
+        weight:'',
+        category:'',
+        stock: ''
+      });
+      this.getProducts();
+    }
+    )
+    .catch(err => console.log(err));
+    }
+
+    e.preventDefault();
+  }
+
+  componentDidMount = () =>{
+    this.getProducts()
+  }
+
+  getProducts = () => {
+    let url ='http://localhost:4000/v1/api/product'
+    fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      console.log(data)
+      this.setState({products: data})
+    })
+  }
+
+  deleteProduct = (id) =>{
+      const url = `http://localhost:4000/v1/api/product/${id}`
+      fetch(url,{
+        method: 'DELETE',
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        M.toast({html: 'Producto Eliminado'});
+        this.getProducts();
+      })
+  }
+
+  editProduct = (id) =>{
+      const url = `http://localhost:4000/v1/api/product/${id}`;
+      fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const {
+          _id,
+          productTitle,
+          ref,
+          price,
+          weight,
+          category,
+          stock} = data;
+        console.log(data)
+        this.setState({
+          _id,
+          productTitle,
+          ref,
+          price,
+          weight,
+          category,
+          stock
+        })
+      })
+  }
+
+  handleChange(e){
+    const { name, value } = e.target;
+    this.setState({ 
+      [name]:value
+    })
+  }
+
+  render(){
+    const {productTitle,
+            ref,
+            price,
+            weight,
+            category,
+            stock,
+            products} = this.state
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className=" App">
+      {/* NAVIGATION*/}
+        <nav className= "light-blue darken-4">
+          <div className =  "container">
+            <a className="brand-logo" href="/">
+              Mern stack
+              </a>            
+          </div>
+        </nav>
+        <div className= "container">
+            <div className = "row">
+              <div className ="col s5">
+                <div className= "card">
+                  <div className = "card-content">
+                      <form onSubmit = {this.addProduct}>
+                        <div className = "row">
+                          <div className="input-field col s12">
+                            <input value = {productTitle}name="productTitle" type= "text" placeholder = "Product Title" onChange = {this.handleChange}></input>
+                            <input value = {ref}name="ref" type= "text" placeholder = "Ref" onChange = {this.handleChange}></input>
+                            <input value = {price}name="price" type= "text" placeholder = "Precio" onChange = {this.handleChange}></input>
+                            <input value = {weight}name="weight" type= "text" placeholder = "Peso" onChange = {this.handleChange}></input>
+                            <input value = {category}name="category" type= "text" placeholder = "Categoria" onChange = {this.handleChange}></input>
+                            <input value = {stock}name="stock" type= "text" placeholder = "Stock" onChange = {this.handleChange}></input>
+                          </div>
+                          <button type= "submit" className="btn light-blue darken-4">Send</button>
+                        </div>
+                      </form>
+                  </div>
+
+                </div>
+
+              </div>
+              <div className ="col s7">
+                  
+                      {
+                        products.map(product =>{
+                          const { productTitle,ref,price,weight,category,stock,_id} = product;
+                          return(
+                            <div key= {_id}className = "card">
+                              <div className = "card-content">
+                                <h6>{productTitle}</h6>
+                                <div className ="col s4">
+                                  <span>Ref: {ref}<br/></span>
+                                  <span>Precio: {price} <br/></span>
+                                  <span>Peso: {weight}</span>
+                                </div>
+                                <div className = "col s4">
+                                  <span>Categoria:{category}<br/></span>
+                                  <span>Stock: {stock}</span>
+                                </div>
+                                <div className = "col s4">
+                                  <button onClick = {() => this.editProduct(_id)} className="btn light-blue darken-4" style = {{margin: '0.3em'}}>
+                                    <i className = "material-icons">edit</i>
+                                  </button>
+                                  <button onClick={()=>this.deleteProduct(_id)} className="btn light-blue darken-4" style = {{margin: '0.3em'}}>
+                                    <i className = "material-icons" >delete</i>
+                                  </button>
+                                </div>
+                                <br></br>
+                                <br></br>
+                                <br></br>
+                                <br></br>
+                              </div>
+                            </div>
+                            
+                          )
+                        })
+                      }
+                  </div>
+             
+
+            </div>
+        </div>
     </div>
   );
+  }
 }
 
 export default App;
