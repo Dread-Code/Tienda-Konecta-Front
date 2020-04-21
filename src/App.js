@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import moment from 'moment';
 import './App.css';
 import M from 'materialize-css';
 
@@ -14,11 +15,14 @@ class App extends Component {
       weight:'',
       category:'',
       stock: '',
+      date:null,
       products: []
     }
     this.addProduct = this.addProduct.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
+
+  // evalua el id, si le pasa el id actualiza el producto y componente, si no crea un producto nuevo f
 
   addProduct = (e) => {
     const id = this.state._id
@@ -42,6 +46,7 @@ class App extends Component {
           price:'',
           weight:'',
           category:'',
+          date: new Date(),
           stock: ''
         });
         this.getProducts();
@@ -66,7 +71,8 @@ class App extends Component {
         price:'',
         weight:'',
         category:'',
-        stock: ''
+        stock: '',
+        date:null
       });
       this.getProducts();
     }
@@ -81,6 +87,8 @@ class App extends Component {
     this.getProducts()
   }
 
+  // get products 
+
   getProducts = () => {
     let url ='http://localhost:4000/v1/api/product'
     fetch(url)
@@ -90,6 +98,8 @@ class App extends Component {
       this.setState({products: data})
     })
   }
+
+  // delete product
 
   deleteProduct = (id) =>{
       const url = `http://localhost:4000/v1/api/product/${id}`
@@ -106,7 +116,7 @@ class App extends Component {
         this.getProducts();
       })
   }
-
+  // edit producto buttom para pasar el id a la funcion add product
   editProduct = (id) =>{
       const url = `http://localhost:4000/v1/api/product/${id}`;
       fetch(url)
@@ -154,7 +164,7 @@ class App extends Component {
         <nav className= "light-blue darken-4">
           <div className =  "container">
             <a className="brand-logo" href="/">
-              Mern stack
+              Tienda Konecta
               </a>            
           </div>
         </nav>
@@ -185,7 +195,7 @@ class App extends Component {
                   
                       {
                         products.map(product =>{
-                          const { productTitle,ref,price,weight,category,stock,_id} = product;
+                          const { productTitle,ref,price,weight,category,stock,_id,date} = product;
                           return(
                             <div key= {_id}className = "card">
                               <div className = "card-content">
@@ -197,7 +207,8 @@ class App extends Component {
                                 </div>
                                 <div className = "col s4">
                                   <span>Categoria:{category}<br/></span>
-                                  <span>Stock: {stock}</span>
+                                  <span>Stock: {stock}<br/></span>
+                                  <span>Fecha: {moment(date).subtract(10, 'days').calendar()}</span>
                                 </div>
                                 <div className = "col s4">
                                   <button onClick = {() => this.editProduct(_id)} className="btn light-blue darken-4" style = {{margin: '0.3em'}}>
